@@ -15,8 +15,36 @@ class auth_Screen extends StatefulWidget {
   State<auth_Screen> createState() => _auth_ScreenState();
 }
 
+extension StringExtension on String {
+  bool get isDigit => RegExp(r'^\d+$').hasMatch(this);
+}
+
 class _auth_ScreenState extends State<auth_Screen> {
+  @override
+  void dispose() {
+    signIn_textfield_controller.dispose();
+    signUp_textfield_controller.dispose();
+    super.dispose();
+  }
+
   // bool inlogin = false;
+  final _signIN_formKey = GlobalKey<FormState>();
+  final _signUp_formKey = GlobalKey<FormState>();
+
+  String? _validateNumber(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a number';
+    }
+    if (value.length < 10) {
+      return 'Number must be at least 10 digits';
+    }
+    final isDigitsOnly = value.isNotEmpty && value.isDigit;
+    if (!isDigitsOnly) {
+      return 'Invalid number';
+    }
+    return null;
+  }
+
   String countryCode = "+91";
   TextEditingController signIn_textfield_controller = TextEditingController();
   TextEditingController signUp_textfield_controller = TextEditingController();
@@ -133,68 +161,77 @@ class _auth_ScreenState extends State<auth_Screen> {
                           hintText: "First and last name"),
                     )),
                 commonFunctions.blankSpace(height: height * 0.02),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                        height: height * 0.06,
-                        width: width * 0.2,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            color: greyShade2,
-                            border: Border.all(color: grey),
-                            borderRadius: BorderRadius.circular(5)),
-                        child: CountryCodePicker(
-                          initialSelection: auth_provider.current_countryCode,
-                          showFlag: false,
-                          showFlagDialog: true,
-                          onChanged: (value) {
-                            auth_provider.change_country_code(
-                                value.toCountryStringOnly());
-                            // countryCode =
-                            //     value.toCountryStringOnly();
+                Form(
+                  key: _signUp_formKey,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Container(
+                          height: height * 0.06,
+                          width: width * 0.2,
+                          // alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                              color: greyShade2,
+                              border: Border.all(color: grey),
+                              borderRadius: BorderRadius.circular(5)),
+                          child: CountryCodePicker(
+                            initialSelection: auth_provider.current_countryCode,
+                            showFlag: false,
+                            showFlagDialog: true,
+                            onChanged: (value) {
+                              auth_provider.change_country_code(
+                                  value.toCountryStringOnly());
+                              // countryCode =
+                              //     value.toCountryStringOnly();
 
-                            print(auth_provider.current_countryCode);
-                          },
-                          textStyle: texttheme.bodySmall!
-                              .copyWith(fontWeight: FontWeight.w500),
-                        )),
-                    commonFunctions.blankSpace(width: width * 0.01),
-                    SizedBox(
-                        height: height * 0.06,
-                        width: width * 0.66,
-                        child: TextFormField(
-                          controller: signUp_textfield_controller,
-                          keyboardType: TextInputType.number,
-                          style: texttheme.bodySmall,
-                          cursorColor: Colors.black,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              hintText: "Mobile number"),
-                        ))
-                  ],
+                              print(auth_provider.current_countryCode);
+                            },
+                            textStyle: texttheme.bodySmall!
+                                .copyWith(fontWeight: FontWeight.w500),
+                          )),
+                      commonFunctions.blankSpace(width: width * 0.01),
+                      SizedBox(
+                          height: height * 0.10,
+                          width: width * 0.66,
+                          child: TextFormField(
+                            validator: _validateNumber,
+                            controller: signUp_textfield_controller,
+                            keyboardType: TextInputType.number,
+                            style: texttheme.bodySmall,
+                            cursorColor: Colors.black,
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                disabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                hintText: "Mobile number"),
+                          ))
+                    ],
+                  ),
                 ),
                 commonFunctions.blankSpace(height: height * 0.02),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<authScreen_provider>().set_mobileNumber(
-                        signUp_textfield_controller.text.trim().toString());
-
-                    auth_service.recieveOTP(
-                        context: context,
-                        mobile_no: auth_provider.mobileNumber);
+                    if (_signUp_formKey.currentState!.validate()) {
+                      auth_provider.change_is_loading(true);
+                      // auth_provider.set_mobileNumber(
+                      //     signIn_textfield_controller.text.toString().trim());
+                      context.read<authScreen_provider>().set_mobileNumber(
+                          signUp_textfield_controller.text.trim().toString());
+                      auth_service.recieveOTP(
+                          context: context,
+                          mobile_no: auth_provider.mobileNumber);
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     elevation: 6.0,
@@ -204,11 +241,20 @@ class _auth_ScreenState extends State<auth_Screen> {
                     backgroundColor: amber,
                     minimumSize: Size(width * 0.90, height * 0.07),
                   ),
-                  child: Text(
-                    'Verify mobile number',
-                    style: texttheme.bodyLarge!
-                        .copyWith(fontWeight: FontWeight.w200),
-                  ),
+                  child: auth_provider.isloading
+                      ? const Padding(
+                          padding: EdgeInsets.all(5.0),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          'Verify mobile number',
+                          style: texttheme.displaySmall!
+                              .copyWith(fontWeight: FontWeight.normal),
+                        ),
                 ),
                 commonFunctions.blankSpace(height: height * 0.03),
                 Container(
@@ -295,209 +341,224 @@ class _auth_ScreenState extends State<auth_Screen> {
     return Container(
       width: width,
       decoration: BoxDecoration(border: Border.all(color: greyShade3)),
-      child: Column(
-        children: [
-          Container(
-            height: height * 0.06,
-            width: width,
-            decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: greyShade3)),
-                color: greyShade1),
-            padding: EdgeInsets.symmetric(
-                horizontal: width * 0.02, vertical: height * 0.01),
-            child: Row(
-              children: [
-                ///checkbox--------
-                InkWell(
-                  child: Container(
-                    height: height * 0.05,
-                    width: width * 0.05,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        border: Border.all(color: grey),
-                        shape: BoxShape.circle,
-                        color: Colors.white),
-                    child: Icon(
-                      Icons.circle,
-                      size: height * 0.013,
-                      color:
-                          auth_provider.inlogin ? transparent : secondaryColor,
-                    ),
-                  ),
-                  onTap: () {
-                    auth_provider.change_islogin(false);
-                  },
-                ),
-                commonFunctions.blankSpace(width: width * 0.02),
-                RichText(
-                    text: TextSpan(children: [
-                  TextSpan(
-                    text: 'Create Account. ',
-                    style: texttheme.bodyMedium!
-                        .copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  TextSpan(
-                      text: 'New to Amazon? ', style: texttheme.bodyMedium!)
-                ]))
-              ],
-            ),
-          ),
-
-          Container(
-            // height: height * 0.06,
-            width: width,
-            padding: EdgeInsets.symmetric(
-                horizontal: width * 0.02, vertical: height * 0.01),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    ///checkbox--------
-                    InkWell(
-                      child: Container(
-                        height: height * 0.05,
-                        width: width * 0.05,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            border: Border.all(color: grey),
-                            shape: BoxShape.circle,
-                            color: Colors.white),
-                        child: Icon(
-                          Icons.circle,
-                          size: height * 0.013,
-                          color: !auth_provider.inlogin
-                              ? transparent
-                              : secondaryColor,
-                        ),
+      child: Form(
+        key: _signIN_formKey,
+        child: Column(
+          children: [
+            Container(
+              height: height * 0.06,
+              width: width,
+              decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: greyShade3)),
+                  color: greyShade1),
+              padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.02, vertical: height * 0.01),
+              child: Row(
+                children: [
+                  ///checkbox--------
+                  InkWell(
+                    child: Container(
+                      height: height * 0.05,
+                      width: width * 0.05,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: grey),
+                          shape: BoxShape.circle,
+                          color: Colors.white),
+                      child: Icon(
+                        Icons.circle,
+                        size: height * 0.013,
+                        color: auth_provider.inlogin
+                            ? transparent
+                            : secondaryColor,
                       ),
-                      onTap: () {
-                        auth_provider.change_islogin(true);
-                      },
                     ),
-                    commonFunctions.blankSpace(width: width * 0.02),
-                    RichText(
-                        text: TextSpan(children: [
-                      TextSpan(
-                        text: 'Sign IN. ',
-                        style: texttheme.bodyMedium!
-                            .copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      TextSpan(
-                          text: 'Already a customer ? ',
-                          style: texttheme.bodyMedium!)
-                    ]))
-                  ],
-                ),
-                commonFunctions.blankSpace(height: height * 0.02),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                        height: height * 0.06,
-                        width: width * 0.2,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            color: greyShade2,
-                            border: Border.all(color: grey),
-                            borderRadius: BorderRadius.circular(5)),
-                        child: CountryCodePicker(
-                          initialSelection: auth_provider.current_countryCode,
-                          showFlag: false,
-                          showFlagDialog: true,
-                          onChanged: (value) {
-                            auth_provider.change_country_code(
-                                value.toCountryStringOnly());
-                            // countryCode =
-                            //     value.toCountryStringOnly();
-
-                            print(auth_provider.current_countryCode);
-                          },
-                          textStyle: texttheme.bodySmall!
-                              .copyWith(fontWeight: FontWeight.w500),
-                        )),
-                    commonFunctions.blankSpace(width: width * 0.01),
-                    SizedBox(
-                        height: height * 0.06,
-                        width: width * 0.66,
-                        child: TextFormField(
-                          controller: signIn_textfield_controller,
-                          keyboardType: TextInputType.number,
-                          style: texttheme.bodySmall,
-                          cursorColor: Colors.black,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide(color: grey)),
-                              hintText: "Mobile number"),
-                        ))
-                  ],
-                ),
-                commonFunctions.blankSpace(height: height * 0.02),
-                ElevatedButton(
-                  onPressed: () {
-                    auth_provider.change_is_loading(true);
-                    auth_provider.set_mobileNumber(
-                        signIn_textfield_controller.text.toString().trim());
-
-                    auth_service.recieveOTP(
-                        context: context,
-                        mobile_no: auth_provider.mobileNumber);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    elevation: 6.0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    backgroundColor: amber,
-                    minimumSize: Size(width * 0.90, height * 0.07),
+                    onTap: () {
+                      auth_provider.change_islogin(false);
+                    },
                   ),
-                  child: auth_provider.isloading
-                      ? const CircularProgressIndicator(
-                          color: Colors.black,
-                        )
-                      : Text(
-                          'continue',
-                          style: texttheme.displaySmall!
-                              .copyWith(fontWeight: FontWeight.normal),
-                        ),
-                ),
-                commonFunctions.blankSpace(height: height * 0.03),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: width * 0.02),
-                  child: RichText(
+                  commonFunctions.blankSpace(width: width * 0.02),
+                  RichText(
                       text: TextSpan(children: [
                     TextSpan(
-                      text: 'By continuing you agree to Amazon\'s ',
-                      style: texttheme.labelMedium!,
+                      text: 'Create Account. ',
+                      style: texttheme.bodyMedium!
+                          .copyWith(fontWeight: FontWeight.bold),
                     ),
                     TextSpan(
-                        text: 'Condition of Use',
-                        style: texttheme.labelMedium!
-                            .copyWith(color: Colors.blue)),
-                    TextSpan(text: ' and ', style: texttheme.labelMedium!),
-                    TextSpan(
-                        text: 'Privacy Policy',
-                        style: texttheme.labelMedium!
-                            .copyWith(color: Colors.blue)),
-                  ])),
-                ),
-                commonFunctions.blankSpace(height: height * 0.02),
-              ],
+                        text: 'New to Amazon? ', style: texttheme.bodyMedium!)
+                  ]))
+                ],
+              ),
             ),
-          ),
 
-          ///
-        ],
+            Container(
+              // height: height * 0.06,
+              width: width,
+              padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.02, vertical: height * 0.01),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      ///checkbox--------
+                      InkWell(
+                        child: Container(
+                          height: height * 0.05,
+                          width: width * 0.05,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                              border: Border.all(color: grey),
+                              shape: BoxShape.circle,
+                              color: Colors.white),
+                          child: Icon(
+                            Icons.circle,
+                            size: height * 0.013,
+                            color: !auth_provider.inlogin
+                                ? transparent
+                                : secondaryColor,
+                          ),
+                        ),
+                        onTap: () {
+                          auth_provider.change_islogin(true);
+                        },
+                      ),
+                      commonFunctions.blankSpace(width: width * 0.02),
+                      RichText(
+                          text: TextSpan(children: [
+                        TextSpan(
+                          text: 'Sign IN. ',
+                          style: texttheme.bodyMedium!
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(
+                            text: 'Already a customer ? ',
+                            style: texttheme.bodyMedium!)
+                      ]))
+                    ],
+                  ),
+                  commonFunctions.blankSpace(height: height * 0.02),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                          height: height * 0.06,
+                          width: width * 0.2,
+                          // alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                              color: greyShade2,
+                              border: Border.all(color: grey),
+                              borderRadius: BorderRadius.circular(5)),
+                          child: CountryCodePicker(
+                            initialSelection: auth_provider.current_countryCode,
+                            showFlag: false,
+                            showFlagDialog: true,
+                            onChanged: (value) {
+                              auth_provider.change_country_code(
+                                  value.toCountryStringOnly());
+                              // countryCode =
+                              //     value.toCountryStringOnly();
+
+                              print(auth_provider.current_countryCode);
+                            },
+                            textStyle: texttheme.bodySmall!
+                                .copyWith(fontWeight: FontWeight.w500),
+                          )),
+                      commonFunctions.blankSpace(width: width * 0.01),
+                      Container(
+                          // color: Colors.blueAccent,
+                          height: height * 0.10,
+                          width: width * 0.66,
+                          // alignment: Alignment.center,
+                          child: TextFormField(
+                            validator: _validateNumber,
+                            controller: signIn_textfield_controller,
+                            keyboardType: TextInputType.number,
+                            style: texttheme.bodySmall,
+                            cursorColor: Colors.black,
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                disabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    borderSide: BorderSide(color: grey)),
+                                hintText: "Mobile number"),
+                          ))
+                    ],
+                  ),
+                  commonFunctions.blankSpace(height: height * 0.02),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_signIN_formKey.currentState!.validate()) {
+                        auth_provider.change_is_loading(true);
+                        auth_provider.set_mobileNumber(
+                            signIn_textfield_controller.text.toString().trim());
+
+                        auth_service.recieveOTP(
+                            context: context,
+                            mobile_no: auth_provider.mobileNumber);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      elevation: 6.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      backgroundColor: amber,
+                      minimumSize: Size(width * 0.90, height * 0.07),
+                    ),
+                    child: auth_provider.isloading
+                        ? const Padding(
+                            padding: EdgeInsets.all(5.0),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.black,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'continue',
+                            style: texttheme.displaySmall!
+                                .copyWith(fontWeight: FontWeight.normal),
+                          ),
+                  ),
+                  commonFunctions.blankSpace(height: height * 0.03),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: width * 0.02),
+                    child: RichText(
+                        text: TextSpan(children: [
+                      TextSpan(
+                        text: 'By continuing you agree to Amazon\'s ',
+                        style: texttheme.labelMedium!,
+                      ),
+                      TextSpan(
+                          text: 'Condition of Use',
+                          style: texttheme.labelMedium!
+                              .copyWith(color: Colors.blue)),
+                      TextSpan(text: ' and ', style: texttheme.labelMedium!),
+                      TextSpan(
+                          text: 'Privacy Policy',
+                          style: texttheme.labelMedium!
+                              .copyWith(color: Colors.blue)),
+                    ])),
+                  ),
+                  commonFunctions.blankSpace(height: height * 0.02),
+                ],
+              ),
+            ),
+
+            ///
+          ],
+        ),
       ),
     );
   }

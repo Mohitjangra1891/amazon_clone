@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 class authScreen_provider extends ChangeNotifier {
   bool inlogin = true;
   bool isloading = false;
+  bool isloading_OTP = false;
   String current_countryCode = "+91";
 
   String mobileNumber = "";
@@ -33,6 +34,11 @@ class authScreen_provider extends ChangeNotifier {
 
   void change_is_loading(bool value) {
     isloading = value;
+    notifyListeners();
+  }
+
+  void change_is_loadingOTP(bool value) {
+    isloading_OTP = value;
     notifyListeners();
   }
 }

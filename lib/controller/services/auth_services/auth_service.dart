@@ -6,7 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../view/users/homepage.dart';
+import '../../../view/users/botton_nav_bar.dart';
+import '../../../view/users/home/homepage.dart';
 
 class auth_service {
   static bool is_user_authenticated() {
@@ -26,10 +27,13 @@ class auth_service {
       await auth.verifyPhoneNumber(
           phoneNumber: mobile_no,
           verificationCompleted: (PhoneAuthCredential credential) {
+            context.read<authScreen_provider>().change_is_loading(false);
             print(
                 "verification Completed $credential\n mobile numer --$mobile_no");
           },
           verificationFailed: (FirebaseAuthException exception) {
+            context.read<authScreen_provider>().change_is_loading(false);
+
             print("verification falied $exception\n mobile numer --$mobile_no");
           },
           codeSent: (String verificationID, int? resendToken) {
@@ -37,7 +41,8 @@ class auth_service {
             context
                 .read<authScreen_provider>()
                 .ser_verificationID(verificationID);
-            // context.read<authScreen_provider>().set_mobileNumber(mobile_no);
+            context.read<authScreen_provider>().change_is_loading(false);
+
             Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -49,6 +54,8 @@ class auth_service {
             print("codeAutoRetrievalTimeout-- $verificationID");
           });
     } catch (exception) {
+      context.read<authScreen_provider>().change_is_loading(false);
+
       if (kDebugMode) {
         print(exception);
       }
@@ -66,18 +73,31 @@ class auth_service {
 
       if (is_user_authenticated()) {
         print("login successful");
+        context.read<authScreen_provider>().change_is_loading(false);
+
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => homePage()),
+            MaterialPageRoute(builder: (context) => bottom_NavBar()),
             (Route<dynamic> route) => false);
       } else {
+        context.read<authScreen_provider>().change_is_loading(false);
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => auth_Screen()),
             (Route<dynamic> route) => false);
       }
     } catch (e) {
-      print(e.toString());
+      context.read<authScreen_provider>().change_is_loadingOTP(false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+          'OTP Invalid',
+          style: TextStyle(color: Colors.red),
+        )),
+      );
+
+      print("dddddddd" + e.toString());
     }
   }
 }

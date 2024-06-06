@@ -75,6 +75,7 @@ class otp_screen extends StatelessWidget {
                 //     context,
                 //     MaterialPageRoute(
                 //         builder: (context) => const otp_screen()));
+                auth_provider.change_is_loadingOTP(true);
                 auth_service.verifyOTp(
                     context: context,
                     otp: otp_controller.text.toString().trim());
@@ -87,11 +88,20 @@ class otp_screen extends StatelessWidget {
                 backgroundColor: amber,
                 minimumSize: Size(width, height * 0.07),
               ),
-              child: Text(
-                'Continue',
-                style:
-                    texttheme.bodyLarge!.copyWith(fontWeight: FontWeight.w200),
-              ),
+              child: auth_provider.isloading_OTP
+                  ? const Padding(
+                      padding: EdgeInsets.all(5.0),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.black,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      'Continue',
+                      style: texttheme.displaySmall!
+                          .copyWith(fontWeight: FontWeight.normal),
+                    ),
             ),
             commonFunctions.blankSpace(height: height * 0.02),
             Align(
