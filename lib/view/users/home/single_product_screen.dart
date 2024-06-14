@@ -104,8 +104,8 @@ class _ProductScreenState extends State<single_product_Screen> {
   executePayment() {
     var options = {
       'key': keyID,
-      // 'amount': widget.productModel.discountedPrice! * 100,
-      'amount': 1 * 100, // Amount is rs 1,
+      'amount': widget.productModel.discountedPrice! * 100,
+      // 'amount': 1 * 100, // Amount is rs 1,
       // here amount * 100 because razorpay counts amount in paisa
       //i.e 100 paisa = 1 Rupee
       // 'image' : '<YOUR BUISNESS EMAIL>'

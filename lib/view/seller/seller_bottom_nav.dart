@@ -27,7 +27,7 @@ class _SellerBottomNavBarState extends State<SellerBottomNavBar> {
             inactiveForegroundColor: Colors.black),
       ),
       PersistentTabConfig(
-        screen: const monitor_screen(),
+        screen: const MonitorScreen(),
         item: ItemConfig(
             icon: const Icon(Icons.bar_chart_outlined),
             title: "Monitor",

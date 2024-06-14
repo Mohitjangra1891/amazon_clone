@@ -1,5 +1,6 @@
 import 'package:amazon_clone/costants/commonFunctions.dart';
 import 'package:amazon_clone/view/users/home/single_product_screen.dart';
+import 'package:amazon_clone/view/users/order_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/user_product_services.dart';
@@ -494,13 +495,12 @@ class YouGridBtons extends StatelessWidget {
         return InkWell(
           onTap: () {
             if (index == 0) {
-              // Navigator.push(
-              //   context,
-              //   PageTransition(
-              //     child: const OrdersScreen(),
-              //     type: PageTransitionType.rightToLeft,
-              //   ),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OrdersScreen(),
+                ),
+              );
             }
           },
           child: Container(
