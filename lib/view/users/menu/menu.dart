@@ -1,11 +1,13 @@
 import 'package:amazon_clone/view/users/home/homepage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 import '../../../costants/commonFunctions.dart';
 import '../../../utils/colors.dart';
 import '../../auth_screens/auth_Screen.dart';
 import '../../seller/add_product_screen/add_product_screen.dart';
+import '../../seller/seller_bottom_nav.dart';
 
 class menu_screen extends StatelessWidget {
   const menu_screen({super.key});
@@ -93,15 +95,20 @@ class menu_screen extends StatelessWidget {
                         child: Row(children: [
                           InkWell(
                             child: Text(
-                              index == 0 ? 'Settings' : 'Customer Service',
+                              index == 0 ? 'Seller Account' : 'Settings',
                               style: textTheme.bodyMedium,
                             ),
                             onTap: () {
-                              Navigator.push(
+                              pushWithoutNavBar(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          AddProductScreen()));
+                                          const SellerBottomNavBar()));
+                              // Navigator.push(
+                              //     context,
+                              //     MaterialPageRoute(
+                              //         builder: (context) =>
+                              //             AddProductScreen()));
                             },
                           ),
                           const Spacer(),
