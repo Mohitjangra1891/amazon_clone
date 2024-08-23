@@ -1,5 +1,7 @@
 # amazon_clone
 
-web app --https://amazonclone-mohit-jangras-projects.vercel.app/
+
+apk link -- https://drive.google.com/drive/folders/10eSitokt81cnF9xs_6l-ya3aAS5evh4e
+
 
 
